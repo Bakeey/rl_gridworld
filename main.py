@@ -1,0 +1,19 @@
+import gymnasium as gym
+import rl_gridworld
+
+def main():
+    env = gym.make('rl_gridworld/Dyson-v0', render_mode="human")
+    env.action_space.seed(42)
+
+    observation, info = env.reset(seed=42)
+
+    for _ in range(1000):
+        observation, reward, terminated, truncated, info = env.step(env.action_space.sample())
+        print(reward)
+        if terminated or truncated:
+            observation, info = env.reset()
+
+    env.close()
+
+if __name__=="__main__":
+    exit(main())
