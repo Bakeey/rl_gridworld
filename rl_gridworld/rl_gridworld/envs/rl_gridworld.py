@@ -12,6 +12,8 @@ class DysonEnv(gym.Env):
         self.battery_life = battery_life
         self.window_size = 512  # The size of the PyGame window
 
+        self.reward_range = (-np.inf, 100)
+
         # Observations are dictionaries with the agent's and the target's location.
         # Each location is encoded as an element of {0, ..., `size`}^2, i.e. MultiDiscrete([size, size]).
         self.observation_space = spaces.Dict(
@@ -64,7 +66,7 @@ class DysonEnv(gym.Env):
         super().reset(seed=seed)
 
         # Choose the agent's location uniformly at random
-        self._agent_location = np.array([0, 0]) # self.np_random.integers(0, self.size, size=2, dtype=int)
+        self._agent_location = np.array([0, 0]) # self.np_random.integers(0, self.size, size=2, dtype=int) 
         self._time = np.zeros(shape=(1,), dtype=int)
 
         # Add initial location to set of visited states
@@ -88,7 +90,7 @@ class DysonEnv(gym.Env):
         self._time += 1
         # Add location to set of visited states if it is not yet in it
         if (np.any(np.all(np.isclose(self._visited_locations, self._agent_location),axis=1))):
-            reward = 0
+            reward = -1
         else:
             self._visited_locations = np.append(self._visited_locations, np.array([self._agent_location]), axis=0)
             reward = 1
@@ -96,19 +98,22 @@ class DysonEnv(gym.Env):
         # An episode is done iff the agent has visited all states
         if self._visited_locations.shape[0] == self.size**2:
             terminated = True
+            truncated = False
             reward = 100
         elif self.battery_life - self._time <= 0:
-            terminated = True
+            truncated = True
+            terminated = False
             reward = -100
         else:
             terminated = False
+            truncated = False
         observation = self._get_obs()
         info = self._get_info()
 
         if self.render_mode == "human":
             self._render_frame()
 
-        return observation, reward, terminated, False, info
+        return observation, reward, terminated, truncated, info
 
     def render(self):
         if self.render_mode == "rgb_array":
