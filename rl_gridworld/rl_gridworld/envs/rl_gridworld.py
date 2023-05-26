@@ -5,7 +5,7 @@ import numpy as np
 
 
 class DysonEnv(gym.Env):
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
 
     def __init__(self, render_mode=None, size=3, battery_life = 100):
         self.size = size  # The size of the square grid
@@ -90,7 +90,7 @@ class DysonEnv(gym.Env):
         self._time += 1
         # Add location to set of visited states if it is not yet in it
         if (np.any(np.all(np.isclose(self._visited_locations, self._agent_location),axis=1))):
-            reward = -1
+            reward = -10
         else:
             self._visited_locations = np.append(self._visited_locations, np.array([self._agent_location]), axis=0)
             reward = 1

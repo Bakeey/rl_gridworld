@@ -7,7 +7,8 @@ from collections import deque
 import rl_gridworld.envs.rl_gridworld
 
 class QNAgent:
-    def __init__(self, no_episodes: int = 1000, alpha = 1.0, size: int = 4, battery_life = 1000, render_mode: str = "human"):
+    def __init__(self, no_episodes: int = 1000, alpha = 0.3, epsilon = 0.0,
+                 size: int = 4, battery_life = 1000, render_mode: str = None):
         self.env = rl_gridworld.envs.DysonEnv(size = size, render_mode=render_mode) # gym.make('rl_gridworld/Dyson-v0', render_mode="human")
         self.env.action_space.seed(42)
 
@@ -21,8 +22,8 @@ class QNAgent:
         # Optimism in the face of uncertainty
         self.q_values = np.ones((size,size,4), dtype=float) * max(self.env.reward_range)
         
-        self.gamma = 0.95    # discount rate
-        self.epsilon = 0.0 # 1.0  # exploration rate
+        self.gamma = 0.95 # discount rate
+        self.epsilon = epsilon # exploration rate
         self.epsilon_min = 0.001
         self.epsilon_decay = 0.999
 
@@ -110,7 +111,8 @@ class QNAgent:
                 if done or truncated:  
                     dateTimeObj = datetime.now()
                     timestampStr = dateTimeObj.strftime("%H:%M:%S")
-                    print("learning rate: {}, episode: {}/{}, score: {}, e: {:.2}, time: {}".format(self.learning_rate, e+1, self.EPISODES, i, self.epsilon, timestampStr))
+                    if (e+1)%100 == 0 or e==0:
+                        print("learning rate: {}, episode: {}/{}, score: {}, e: {:.2}, time: {}".format(self.learning_rate, e+1, self.EPISODES, i, self.epsilon, timestampStr))
                     rewards[e] = i
                     # save model option
                     # if i >= 500:
@@ -121,24 +123,56 @@ class QNAgent:
 
                 # update Q values
                 state = next_state
-
-
         return rewards
 
 
 def main():
+        
+    alphas = np.flip(np.linspace(1,0,20,endpoint=False))
+    epsilons = np.flip(np.linspace(1,0,21,endpoint=True))
+    episodes = 1000
 
-    agent = QNAgent(render_mode=None) # "human")
-    agent.training()
+    rewards = np.empty((alphas.shape[0],epsilons.shape[0],episodes),dtype=float)
 
+    for ii,alpha in enumerate(alphas):
+        for jj,epsilon in enumerate(epsilons):
+            agent = QNAgent(no_episodes = episodes, alpha=alpha, epsilon=epsilon, render_mode=None)
+            rewards[ii,jj] = agent.training()
 
-    for _ in range(1000):
-        observation, reward, terminated, truncated, info = env.env.step(env.env.action_space.sample())
-        print(reward)
-        if terminated or truncated:
-            observation, info = env.env.reset()
+    # save
+    rewards_reshaped = rewards.reshape(rewards.shape[0], -1)
+  
+    # saving reshaped array to file.
+    np.savetxt("rewards.txt", rewards_reshaped)
+    
+    # retrieving data from file.
+    loaded_arr = np.loadtxt("rewards.txt")
+    
+    # This loadedArr is a 2D array, therefore
+    # we need to convert it to the original
+    # array shape.reshaping to get original
+    # matrice with original shape.
+    load_original_arr = loaded_arr.reshape(
+        loaded_arr.shape[0], loaded_arr.shape[1] // rewards.shape[2], rewards.shape[2])
+    
+    # check the shapes:
+    print("shape of arr: ", rewards.shape)
+    print("shape of load_original_arr: ", load_original_arr.shape)
+    
+    # check if both arrays are same or not:
+    if (load_original_arr == rewards).all():
+        print("Yes, both the arrays are same")
+    else:
+        print("No, both the arrays are not same")
 
-    env.env.close()
+    # for _ in range(1000):
+    #     observation, reward, terminated, truncated, info = env.env.step(env.env.action_space.sample())
+    #     print(reward)
+    #     if terminated or truncated:
+    #         observation, info = env.env.reset()
+# 
+    # env.env.close()
+    return
 
 if __name__=="__main__":
     exit(main())
