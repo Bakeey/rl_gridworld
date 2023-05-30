@@ -23,19 +23,22 @@ class QNAgent:
         self.q_values = np.ones((size,size,4), dtype=float) * max(self.env.reward_range)
         
         self.gamma = 0.95 # discount rate
-        self.epsilon = epsilon # exploration rate
-        self.epsilon_min = 0.001
+        self.epsilon = epsilon # initial exploration rate
+        self.epsilon_min = 0.0
         self.epsilon_decay = 0.999
+
+        self.train_start = 50
 
         self.learning_rate = alpha
 
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
-        return # TODO
         if len(self.memory) > self.train_start:
             if self.epsilon > self.epsilon_min:
                 self.epsilon *= self.epsilon_decay
+        return # TODO
+
  
     # implement the epsilon-greedy policy
     def act(self, state):
@@ -143,10 +146,10 @@ def main():
     rewards_reshaped = rewards.reshape(rewards.shape[0], -1)
   
     # saving reshaped array to file.
-    np.savetxt("rewards.txt", rewards_reshaped)
+    np.savetxt("rewards_decaying.txt", rewards_reshaped)
     
     # retrieving data from file.
-    loaded_arr = np.loadtxt("rewards.txt")
+    loaded_arr = np.loadtxt("rewards_decaying.txt")
     
     # This loadedArr is a 2D array, therefore
     # we need to convert it to the original
