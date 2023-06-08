@@ -131,25 +131,25 @@ class QNAgent:
 
 def main():
         
-    alphas = np.flip(np.linspace(1,0,20,endpoint=False))
-    epsilons = np.flip(np.linspace(1,0,21,endpoint=True))
+    alphas = np.array([0.1]) # np.flip(np.linspace(1,0,20,endpoint=False))
+    epsilons = np.array([0.3]) # np.flip(np.linspace(1,0,21,endpoint=True))
     episodes = 1000
 
     rewards = np.empty((alphas.shape[0],epsilons.shape[0],episodes),dtype=float)
 
     for ii,alpha in enumerate(alphas):
         for jj,epsilon in enumerate(epsilons):
-            agent = QNAgent(no_episodes = episodes, alpha=alpha, epsilon=epsilon, render_mode=None)
+            agent = QNAgent(no_episodes = episodes, alpha=alpha, epsilon=epsilon, render_mode='human', battery_life=100)
             rewards[ii,jj] = agent.training()
 
     # save
     rewards_reshaped = rewards.reshape(rewards.shape[0], -1)
   
     # saving reshaped array to file.
-    np.savetxt("rewards_decaying.txt", rewards_reshaped)
+    np.savetxt("rewards_decaying_viz.txt", rewards_reshaped)
     
     # retrieving data from file.
-    loaded_arr = np.loadtxt("rewards_decaying.txt")
+    loaded_arr = np.loadtxt("rewards_decaying_viz.txt")
     
     # This loadedArr is a 2D array, therefore
     # we need to convert it to the original

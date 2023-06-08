@@ -1,0 +1,2 @@
+Youtube: https://youtu.be/fciQHOOK4N8
+Github: https://github.com/Bakeey/rl_gridworld
